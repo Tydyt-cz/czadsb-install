@@ -1,1 +1,3 @@
 # czadsb-install
+
+Novy skript ...
