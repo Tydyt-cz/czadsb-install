@@ -8,7 +8,8 @@ Je testován pro nové verze Debian / Rasbian 11 a 12. Základní změny jsou:
 * ModeMixer není funkční na nových verzích Debian. Proto skript jej již neinstaluje
 
 
-``Instalace``
+``Instalace:``
+
 Prvně si připravíme operační systém. Obecně při instalaci na Raspberry se doporučuje:
 * Aktuální verze Raspbian 64 Bit Lite (nepředpokládám že na Rasbbery umístěné někde na půdě, či sožáru bude připojen monitor).
 * Pokud chcete využívat MLAT data od FlightAware, tak použít jejich image [ https://www.flightaware.com/adsb/piaware/build viz web ].
