@@ -7,7 +7,7 @@
 CFG="/etc/default/czadsb.cfg"
 
 # Cesta k instalacnim skriptum
-INSTALL_URL="https://rxw.cz/adsb"
+INSTALL_URL="https://github.com/Tydyt-cz/czadsb-install/master"
 
 
 # Uvodni pozdrav
