@@ -14,7 +14,7 @@ Prvně si připravíme operační systém. Obecně při instalaci na Raspberry s
 * Aktuální verze Raspbian 64 Bit Lite (nepředpokládám že na Rasbbery umístěné někde na půdě, či sožáru bude připojen monitor).
 * Pokud chcete využívat MLAT data od FlightAware, tak použít jejich image [viz web](https://www.flightaware.com/adsb/piaware/build).
 
-Po zprovozní pak spustíme úprůvodce vlastni instalaci:
+Po zprovozní systému pak spustíme instalační skript, který nás provede vlastní instalací:
 ```
 bash -c "$(wget -O - https://github.com/Tydyt-cz/czadsb-install/master/install-czadsb.sh)"
 ```
