@@ -7,8 +7,7 @@
 CFG="/etc/default/czadsb.cfg"
 
 # Cesta k instalacnim skriptum
-INSTALL_URL="https://github.com/Tydyt-cz/czadsb-install/master"
-
+INSTALL_URL="https://raw.githubusercontent.com/Tydyt-cz/czadsb-install/refs/heads/main/"
 
 # Uvodni pozdrav
 function info_logo(){
