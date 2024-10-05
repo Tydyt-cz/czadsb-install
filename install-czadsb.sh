@@ -7,6 +7,7 @@
 CFG="/etc/default/czadsb.cfg"
 
 # Cesta k instalacnim skriptum
+<<<<<<< HEAD
 INSTALL_URL="https://rxw.cz/adsb/install"
 
 if [[ "$1" == "czadsb"]];then
@@ -15,6 +16,9 @@ elif [[ "$1" == "tydyt"]];then
     INSTALL_URL="https://raw.githubusercontent.com/Tydyt-cz/czadsb-install/refs/heads/main/install"
 fi
 
+=======
+INSTALL_URL="https://raw.githubusercontent.com/Tydyt-cz/czadsb-install/refs/heads/main/"
+>>>>>>> e82227e1c8767056b0213da3a603850813b9ca8f
 
 # Uvodni pozdrav
 function info_logo(){
