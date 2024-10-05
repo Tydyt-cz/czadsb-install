@@ -12,6 +12,8 @@ CFG="/etc/default/czadsb.cfg"
 INSTALL_URL="https://raw.githubusercontent.com/Tydyt-cz/czadsb-install/refs/heads/main/install"
 #INSTALL_URL="https://raw.githubusercontent.com/CZADSB/czadsb-install/refs/heads/main/install"
 
+# echo ${{ vars.URL_SCRIPTS }}
+
 # Uvodni pozdrav
 function info_logo(){
     echo
