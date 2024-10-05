@@ -12,8 +12,8 @@ SUDO="sudo"
 
 # Nacti vybranou adresu
 #URL_FWD="https://rxw.cz/adsb/install/install-adsbfwd.sh"
-URL_FWD="https://raw.githubusercontent.com/CZADSB/czadsb-install/refs/heads/main/install/install-adsbfwd.sh"
-#URL_FWD="https://raw.githubusercontent.com/Tydyt-cz/czadsb-install/refs/heads/main/install/install-adsbfwd.sh"
+URL_FWD="https://raw.githubusercontent.com/Tydyt-cz/czadsb-install/refs/heads/main/install/install-adsbfwd.sh"
+#URL_FWD="https://raw.githubusercontent.com/CZADSB/czadsb-install/refs/heads/main/install/install-adsbfwd.sh"
 
 # Nacti verzi systemu
 . /etc/os-release
