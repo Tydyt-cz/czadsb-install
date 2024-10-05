@@ -6,8 +6,11 @@
 # Cesta k novemu konfiguracnimu souboru
 CFG="/etc/default/czadsb.cfg"
 
+
 # Cesta k instalacnim skriptum
-INSTALL_URL="https://raw.githubusercontent.com/Tydyt-cz/czadsb-install/refs/heads/main/"
+#INSTALL_URL="https://rxw.cz/adsb/install"
+INSTALL_URL="https://raw.githubusercontent.com/Tydyt-cz/czadsb-install/refs/heads/main/install"
+#INSTALL_URL="https://raw.githubusercontent.com/CZADSB/czadsb-install/refs/heads/main/install"
 
 # echo ${{ vars.URL_SCRIPTS }}
 
@@ -130,6 +133,7 @@ function info_system(){
     printf "┌────────────────────────── Informace o systemu ───────────────────────────┐\n"
     printf "│ System: %-64s │\n" "${STATION_SYSTEM} - ${STATION_ARCH}"
     printf "│ Model: %-64s  │\n" "${STATION_MODEL} - ${STATION_MACHINE}"
+    printf "│ URL: %-64s    │\n" "${INSTALL_URL}"
     [[ "$1" == "end" ]] && printf "└──────────────────────────────────────────────────────────────────────────┘\n"
 }
 
