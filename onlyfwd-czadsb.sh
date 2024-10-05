@@ -12,9 +12,9 @@ SUDO="sudo"
 
 # Nacti vybranou adresu
 URL_FWD="https://rxw.cz/adsb/install/install-adsbfwd.sh"
-if [[ "$1" == "czadsb"]];then
+if [[ "$1" == "czadsb" ]];then
     INSTALL_URL="https://raw.githubusercontent.com/CZADSB/czadsb-install/refs/heads/main/install/install-adsbfwd.sh"
-elif [[ "$1" == "tydyt"]];then
+elif [[ "$1" == "tydyt" ]];then
     INSTALL_URL="https://raw.githubusercontent.com/Tydyt-cz/czadsb-install/refs/heads/main/install/install-adsbfwd.sh"
 fi
 
