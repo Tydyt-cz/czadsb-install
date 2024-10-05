@@ -11,12 +11,9 @@ MLAT_V="0.2.13"
 SUDO="sudo"
 
 # Nacti vybranou adresu
-URL_FWD="https://rxw.cz/adsb/install/install-adsbfwd.sh"
-if [[ "$1" == "czadsb" ]];then
-    INSTALL_URL="https://raw.githubusercontent.com/CZADSB/czadsb-install/refs/heads/main/install/install-adsbfwd.sh"
-elif [[ "$1" == "tydyt" ]];then
-    INSTALL_URL="https://raw.githubusercontent.com/Tydyt-cz/czadsb-install/refs/heads/main/install/install-adsbfwd.sh"
-fi
+#URL_FWD="https://rxw.cz/adsb/install/install-adsbfwd.sh"
+URL_FWD="https://raw.githubusercontent.com/CZADSB/czadsb-install/refs/heads/main/install/install-adsbfwd.sh"
+#URL_FWD="https://raw.githubusercontent.com/Tydyt-cz/czadsb-install/refs/heads/main/install/install-adsbfwd.sh"
 
 # Nacti verzi systemu
 . /etc/os-release
