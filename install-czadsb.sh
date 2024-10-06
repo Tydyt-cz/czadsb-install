@@ -133,7 +133,6 @@ function info_system(){
     printf "┌────────────────────────── Informace o systemu ───────────────────────────┐\n"
     printf "│ System: %-64s │\n" "${STATION_SYSTEM} - ${STATION_ARCH}"
     printf "│ Model: %-64s  │\n" "${STATION_MODEL} - ${STATION_MACHINE}"
-    printf "│ URL: %-64s    │\n" "${INSTALL_URL}"
     [[ "$1" == "end" ]] && printf "└──────────────────────────────────────────────────────────────────────────┘\n"
 }
 
@@ -322,7 +321,11 @@ function set_identifikace(){
     input "Registracni email (email musi byt platny) [${USER_EMAIL}]:" '^[a-zA-Z0-9_\.\-]*@[a-z0-9_\.\-]*\.[a-z]*$' "${USER_EMAIL}" 
     USER_EMAIL=${X}
 
-    input "Oznaceni / pojmenovani prijimace [${STATION_NAME}]:" '^[a-zA-Z0-9_\.\-]{3,9}$' "${STATION_NAME}"
+    if [[ "${OGN}" == "disable" ]] || [[ "${OGN}" == "enable" ]];then
+        input "Oznaceni / pojmenovani prijimace [${STATION_NAME}]:" '^[a-zA-Z0-9_\.\-]{3,9}$' "${STATION_NAME}"
+    else
+        input "Oznaceni / pojmenovani prijimace [${STATION_NAME}]:" '^[a-zA-Z0-9_\.\-]{3,27}$' "${STATION_NAME}"
+    fi
     STATION_NAME=${X}
 
     UPDATE_MLAT=true
@@ -342,7 +345,6 @@ function set_lokalizace(){
     printf "└──────────────────────────────────────────────────────────────────────────┘\n"
 
     while true; do
-#        input "Zemepisna sirka umisteni prijimace ve stupnich (XX.xxxxxx) [${STATION_LAT}]°:" '^[0-9\.\-]{}$' "${STATION_LAT}"
         input "Zemepisna sirka umisteni prijimace ve stupnich (XX.xxxxxx) [${STATION_LAT}]°:" '^[0-9\-]{0,4}\.[0-9]{5,8}$' "${STATION_LAT}"
         STATION_LAT=${X}
         input "Zemepisna delka umisteni prijimace ve stupnich (YY.yyyyyy) [${STATION_LON}]°:" '^[0-9\-]{0,4}\.[0-9]{5,8}$' "${STATION_LON}"
