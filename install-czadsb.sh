@@ -628,11 +628,11 @@ function set_czadsb(){
 #!/bin/bash
 # Jednoduchy odkaz pro snadnejsi spusteni pruvodce, konfigurace
 cd ~        
-bash -c "\$(wget -q -O - ${INSTALL_URL}/install-czadsb.sh)"
+bash -c "\$(wget -q -O - $( echo ${INSTALL_URL} | sed 's/\/install//g' )/install-czadsb.sh)"
 EOM
     $SUDO chmod 755 ${INSTALL_FILE}
 }
-
+ 
 # Funkce zmeni seriova cisla rtl-sdr zarizeni
 function set_rtl_sn(){
     while true; do
