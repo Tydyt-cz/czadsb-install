@@ -6,7 +6,7 @@ STATION_NAME="ogn"
 # Jmeno uzivatele pod kterym se spusti rtlsdr OGN
 OGN_USER="ogn"
 # levne" R820T maji opravny faktory 40-80ppm, meri se pomoci gsm_scan
-OGN_PPM="40"
+OGN_PPM="0"
 
 
 # Skontroluj parametr umisteni konfiguracniho souboru z parametry prijimace
@@ -61,11 +61,14 @@ echo "* Detekovan system ${MACHINE}, stazeni rtlsdr-ogn-bin"
 if [[ "$MACHINE" == "armv7l" ]];then
     wget -nv http://download.glidernet.org/rpi-gpu/rtlsdr-ogn-bin-RPI-GPU-latest.tgz -O rtlsdr-ogn-bin-latest.tgz
 elif [[ "$MACHINE" == "aarch64" ]];then
-    wget -nv http://download.glidernet.org/arm64/rtlsdr-ogn-bin-arm64-latest.tgz -O rtlsdr-ogn-bin-latest.tgz
+#    wget -nv http://download.glidernet.org/arm64/rtlsdr-ogn-bin-arm64-latest.tgz -O rtlsdr-ogn-bin-latest.tgz
+    wget -nv https://github.com/VirusPilot/ogn-pi34/raw/refs/heads/master/rtlsdr-ogn-bin-arm64-0.3.3.tgz -O rtlsdr-ogn-bin-latest.tgz
 elif [[ "$MACHINE" == "aarch" ]];then
-    wget -nv http://download.glidernet.org/arm/rtlsdr-ogn-bin-ARM-latest.tgz -O rtlsdr-ogn-bin-latest.tgz
+#    wget -nv http://download.glidernet.org/arm/rtlsdr-ogn-bin-ARM-latest.tgz -O rtlsdr-ogn-bin-latest.tgz
+    wget -nv https://github.com/VirusPilot/ogn-pi34/raw/refs/heads/master/rtlsdr-ogn-bin-ARM-0.3.3.tgz -O rtlsdr-ogn-bin-latest.tgz
 elif [[ "$MACHINE" == "x86_64" ]];then
-    wget -nv http://download.glidernet.org/x64/rtlsdr-ogn-bin-x64-latest.tgz -O rtlsdr-ogn-bin-latest.tgz
+#    wget -nv http://download.glidernet.org/x64/rtlsdr-ogn-bin-x64-latest.tgz -O rtlsdr-ogn-bin-latest.tgz
+    wget -nv https://github.com/VirusPilot/ogn-pi34/raw/refs/heads/master/rtlsdr-ogn-bin-x64-0.3.3.tgz -O rtlsdr-ogn-bin-latest.tgz
 elif [[ "$MACHINE" == "x386" ]];then
     wget -nv http://download.glidernet.org/x86/rtlsdr-ogn-bin-x86-latest.tgz -O rtlsdr-ogn-bin-latest.tgz
 else
@@ -110,44 +113,72 @@ $SUDO chmod 666 ${CONFIG_FILE}
 /bin/cat <<EOM >${CONFIG_FILE}
 RF:
 {
-  FreqCorr = ${OGN_PPM};           # [ppm]  "levne" R820T maji opravny faktory 40-80ppm, meri se pomoci gsm_scan
-  Device   = 1;             # rtl-sdr device index
+  Async        = 1;         # = 0, Kalibrace frekvence na zaklade signalu GSM
+                            # = 1, (vychozi) zpusobi, ze RF bude cist data nepretrzite bez mezer, coz je nutne pro nastaveni casu prichodu.
+                            # = 2, stejne jako Async = 1, ale latence je dale snizena o 50 %
+  Device       = 1;         # rtl-sdr device index
 # DeviceSerial = "00000002";# seriove cslo zarizeni rtl-sdr, ktere chcete vybrat
+  FreqCorr = ${OGN_PPM};        # [ppm]  "levne" R820T maji opravny faktory 40-80ppm, meri se pomoci gsm_scan
+  SampleRate   = 2.0;       # [MHz] 1.0 nebo 2.0MHz, provoz 2MHz ma vetci zatez CPU, ale pro zachycení všech systémů: FLARM/OGN/FANET/ADS-L/PilotAware je je potreba
 # BiasTee      = 1;         # zapne napajeni 5V pro predzesilovac - Jen pro v3 dongle
-  SampleRate   = 2.0;       # [MHz] 1.0 nebo 2.0MHz, provoz 2MHz ma vetci zatez CPU, ale pro zachytit PilotAware je potreba
 
   GSM:                      # frekvence pro kalibraci kmitoctu zalozenou na GSM signulu
   {
     CenterFreq  = 930.4;    # [MHz] nejlepsi GSM frekvenci zjiitsna pomoci gsm_scan
     Gain        =  2.7;     # [dB]  RF vstupni zesileni (dejte pozor, ze GSM signaly jsou velmi silne!)
                             # platna nastaveni pro zisk : 0.0 1.4 3.7 7.7 8.7 12.5 14.4 15.7 16.6 19.7 20.7 22.9 25.4 28.0 29.7 32.8 33.8 36.4 37.2 38.6 40.2 42.1 43.4 43.9 44.5 48.0 49.6
-  } ;
+  };
 
   OGN:
   {
-    CenterFreq  = 868.8;    # [MHz] ze sirkou pasma 868,8 MHz a 2 MHz muzeme zachytit vsechny systemy: FLARM / OGN / FANET / PilotAware
-    Gain        = 49.6;     # [0.1dB] Rx zesileni OGN prijimace
+    CenterFreq  = 868.8;    # [MHz] ze sirkou pasma 868,8 MHz a 2 MHz muzeme zachytit vsechny systemy: FLARM/OGN/FANET/ADS-L/PilotAware
+    Gain        = 49.6;     # vychozi zisk, ktery bude upraven dle AGC. Pro rucni nastaveni je nutne nastavit pro MinNoise -20 a pro MaxNoise 50
+    MinNoise    =   2.0;    # minimalni povoleny sum, pro vypnuti nastavit -20.0
+    MaxNoise    =  10.0;    # maximalni povoleny sum (default is 8.0 dB), pro vypnutí nastavit 50.0
   };
-} ;
+};
 
-Demodulator:
+Demodulator:               # tuto část lze vynechat, protože výchozí hodnoty jsou rozumné
 {
   ScanMargin = 30.0;       # [kHz] frekvencni tolerance pro prijem, vetsina signalu by normalne mela byt +/-15 kHz, ale nektere jsou vice mimo frekvenci
   DetectSNR  = 10.0;       # [dB]  prah detekce pro FLARM/OGN
-}
+};
+
+ADSB:                      # odesila na Open Glider Network provoz ADS-B, coz vyzaduje druhy SDR se spustenym dump1090 nebo readsb
+{
+  AVR = ""               ; # Ponechte prazdne, pokud NECHCETE odesilat Open Glider Network data z ADS-B.
+# AVR = "localhost:30002"
+  MaxAlt = 18000;          # [ft] vychozi maximalni nadmorska vyska, klidne ji zvyste, ale potencialne to zvysi vas internetovy provoz
+};
 
 Position:
 {
   Latitude   =   +${STATION_LAT} ; # [deg] Souradnice anteny ve stupnich
   Longitude  =   +${STATION_LON} ; # [deg]
-  Altitude   =   ${STATION_ALT} ;        # [m]   Nadmorska vvyska nad morem v metrech
-# GeoidSepar =   10;           # [m]   Geoid separation: FLARM vysila GPS nadmorskou vyku, APRS pouziva prostredky nadmorske vysky
+  Altitude   =   ${STATION_ALT} ;       # [m]   Nadmorska vvyska nad morem v metrech
+# GeoidSepar =   10;         # [m]   Geoid separation: FLARM vysila GPS nadmorskou vyku, APRS pouziva prostredky nadmorske vysky
 } ;
 
 APRS:
 {
-  Call   = "${STATION_NAME}";  # APRS oznaceni (max. 9 znaku). Obratte se prosim na http://wiki.glidernet.org/receiver-naming-convention
-# Server = "aprs.glidernet.org:14580";
+  #ToAserver = "ogn3.glidernet.org:50014"; # Sluzba Time-of-Arrival, vyzaduje RF.Async = 1; dostupna od verze 0.3.3
+  #Server = "localhost:14580";             # Povolte tento radek, pokud chcete pouzivat funkci APRS serveru viz https://github.com/b3nn0/ogn2dump1090
+  #Server = "aprs.glidernet.org:14580";    # Preddefinovana adresa pro zasilani APRS dat
+  Call   = "${STATION_NAME}";              # APRS oznaceni (max. 9 znaku). Obratte se prosim na http://wiki.glidernet.org/receiver-naming-convention
+
+  Beacon:                  # zvazte prosim pridani kratkych, ale uzitecnych informací (az 63 znaku na radek) o vasi stanici.
+  {                        # tyto informace se zobrazi na nekterych webovych strankach glidernet, jako naptiklad https://www.gliderradar.com
+    Comment = [
+      "antenna: ",
+      "filter: ",
+      "amplifier: ",
+      "dongle: ",
+      "club: ",
+      "email: ",
+      "website: ",
+      "note: "
+    ];
+  };
 } ;
 
 HTTP:
