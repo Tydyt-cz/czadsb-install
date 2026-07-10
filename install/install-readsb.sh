@@ -16,9 +16,15 @@ if [[ "$(id -u)" != "0" ]] && [[ ${SUDO} == "" ]];then
     exit 3
 fi
 
+# Over zda nejde o upgrade, ale jen pokud je readsb install
+if [[ ! -z ${UPGRADE}  &&  ${UPGRADE} && ! -z ${READSB} && "${READSB}" == "install" ]];then
+    FORCE=true
+else
+    FORCE=false
+fi
 
-# Instalace Readsb, jen pokud jiz neexistuje
-if command -v readsb &>/dev/null ;then
+# Instalace Readsb, jen pokud jiz neexistuje nebo je force
+if [ ! ${FORCE} ] &&  command -v readsb &>/dev/null ;then
     echo "Software ReADSB je na systemu jiz nainstalovan"
 else
     # Nacti verzi systemu
