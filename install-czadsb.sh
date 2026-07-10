@@ -228,6 +228,11 @@ function info_system(){
     STATION_MODEL=$(grep Model /proc/cpuinfo | awk -F : '{print $2}')
     [[ -z ${STATION_MODEL} ]] && STATION_MODEL=$($SUDO dmidecode | grep -A4 '^System Information' | grep 'Manufacturer' | awk -F: '{print $2}')
     INSTALL_TXT=$(printf "%.64s" "${INSTALL_URL}")
+    
+    if [[ "${STATION_MODEL}" == "" && -a /boot/dietpi/.hw_model ]];then
+        . /boot/dietpi/.hw_model
+        STATION_MODEL=${G_HW_MODEL_NAME}
+    fi
 
     printf "┌────────────────────────── Informace o systemu ───────────────────────────┐\n"
     printf "│ System: %-64s │\n" "${STATION_SYSTEM} - ${STATION_ARCH}"
@@ -264,7 +269,7 @@ function info_rtlsdr(){
     if [[ -s /tmp/rtlsdr.list ]];then
         grep "^ " /tmp/rtlsdr.list | awk -F, '{ printf "│        %2s    %-20s %-28s│\n", $1, $2, $3 }'
     else
-        printf "│                  Zarizeni RTL SDR nebylo detekovano !                    │\n"
+        printf "│                  \e[38;5;208mZarizeni RTL SDR nebylo detekovano !\e[0m                    │\n"
     fi
     printf     "└──────────────────────────────────────────────────────────────────────────┘\n"
 }
@@ -484,23 +489,27 @@ function set_expert(){
 
 # Funkce nastavi, zda se ma provadet aktualizace systemu
 function set_upgrade(){
-    printf "┌──────────────────── Aktualizace operacniho systemu  ─────────────────────┐\n"
-    printf "│  Doporucuje se udrzovat  operacni system  aktualni. Pokud nastavite Auto │\n"
-    printf "│  bude  pri  kazdem  ukonceni  skriptu  provedena  kontrola  s  pripadnou │\n"
-    printf "│  aktualizace. Pokud  nastavyte Yes provede se jen  vramci  ukonceni, kdy │\n"
-    printf "│  jset tuto volbu zadali.                                                 │\n"
-    printf "└──────────────────────────────────────────────────────────────────────────┘\n"
-    if [[ "${STATION_UPGRADE}" == "enable" ]];then
-        input "Provest aktualizaci systemu [a/Y/n]" '^[aynAYN]*$' "y"
+    if [[ "${EXPERT}" != "user" ]];then
+        printf "┌──────────────────── Aktualizace operacniho systemu  ─────────────────────┐\n"
+        printf "│  Doporucuje se udrzovat  operacni system  aktualni. Pokud nastavite Auto │\n"
+        printf "│  bude  pri  kazdem  ukonceni  skriptu  provedena  kontrola  s  pripadnou │\n"
+        printf "│  aktualizace. Pokud  nastavyte Yes provede se jen  vramci  ukonceni, kdy │\n"
+        printf "│  jset tuto volbu zadali.                                                 │\n"
+        printf "└──────────────────────────────────────────────────────────────────────────┘\n"
+        if [[ "${STATION_UPGRADE}" == "enable" ]];then
+            input "Provest aktualizaci systemu [a/Y/n]" '^[aynAYN]*$' "y"
+        else
+            input "Provest aktualizaci systemu [A/y/n]" '^[aynAYN]*$' "a" 
+        fi
+        [[ "$X" == "a" ]] || [[ "$X" == "A" ]] && STATION_UPGRADE="auto"
+        [[ "$X" == "y" ]] || [[ "$X" == "Y" ]] && STATION_UPGRADE="enable" 
+        [[ "$X" == "n" ]] || [[ "$X" == "N" ]] && STATION_UPGRADE="disable"
+        [[ "${STATION_UPGRADE}" != "auto" ]] && [[ "${STATION_UPGRADE}" != "enable" ]] && [[ "${STATION_UPGRADE}" != "disable" ]] && STATION_UPGRADE="auto"
+        echo
     else
-        input "Provest aktualizaci systemu [A/y/n]" '^[aynAYN]*$' "a" 
-    fi
-    [[ "$X" == "a" ]] || [[ "$X" == "A" ]] && STATION_UPGRADE="auto"
-    [[ "$X" == "y" ]] || [[ "$X" == "Y" ]] && STATION_UPGRADE="enable" 
-    [[ "$X" == "n" ]] || [[ "$X" == "N" ]] && STATION_UPGRADE="disable"
-    [[ "${STATION_UPGRADE}" != "auto" ]] && [[ "${STATION_UPGRADE}" != "enable" ]] && [[ "${STATION_UPGRADE}" != "disable" ]] && STATION_UPGRADE="auto"
-    echo
-    UPDATE_UPGRADE=true      
+        STATION_UPGRADE="enable"
+    fi      
+    UPDATE_UPGRADE=true
 }
 
 # Funkce nastavi identifikacni udaje zarizeni
@@ -832,19 +841,21 @@ function set_tar1090(){
             LIGHTTPD="enable"
         fi
     fi
-    if [[ "${LIGHTTPD}" =~ "disable" ]] || [[ "${LIGHTTPD}" =~ "enable" ]];then
-        if [[ "${LIGHTTPD}" == "diseble" ]];then
-            input "Ma se Lighttpd spoustet automaticky [y/N]:" '^[ynYN]*$' "n"
-        else
-            input "Ma se Lighttpd spoustet automaticky [Y/n]:" '^[ynYN]*$' "y"
+    if [[ "${EXPERT}" != "user" ]];then
+        if [[ "${LIGHTTPD}" =~ "disable" ]] || [[ "${LIGHTTPD}" =~ "enable" ]];then
+            if [[ "${LIGHTTPD}" == "diseble" ]];then
+                input "Ma se Lighttpd spoustet automaticky [y/N]:" '^[ynYN]*$' "n"
+            else
+                input "Ma se Lighttpd spoustet automaticky [Y/n]:" '^[ynYN]*$' "y"
+            fi
+            if [[ "$X" == "n" ]] || [[ "$X" == "N" ]];then
+                LIGHTTPD="disable"
+            else
+                LIGHTTPD="enable"
+            fi
+            UPDATE_TAR1090=true
+            UPDATE_LIGHTTPD=true
         fi
-        if [[ "$X" == "n" ]] || [[ "$X" == "N" ]];then
-            LIGHTTPD="disable"
-        else
-            LIGHTTPD="enable"
-        fi
-        UPDATE_TAR1090=true
-        UPDATE_LIGHTTPD=true
     fi
     echo
 }
@@ -916,15 +927,17 @@ function set_n2nvpn(){
         fi
     fi
     if [[ "${N2NADSB}" =~ "disable" ]] || [[ "${N2NADSB}" =~ "enable" ]];then
-        if [[ "${N2NADSB}" == "diseble" ]];then
-            input "Ma se VPN Edge CzADSB spoustet automaticky [y/N]:" '^[ynYN]*$' "n"
-        else
-            input "Ma se VPN Edge CzADSB spoustet automaticky [Y/n]:" '^[ynYN]*$' "y"
-        fi
-        if [[ "$X" == "n" ]] || [[ "$X" == "N" ]];then
-            N2NADSB="disable"
-        else
-            N2NADSB="enable"
+        if [[ "${EXPERT}" != "user" ]];then
+            if [[ "${N2NADSB}" == "diseble" ]];then
+                input "Ma se VPN Edge CzADSB spoustet automaticky [y/N]:" '^[ynYN]*$' "n"
+            else
+                input "Ma se VPN Edge CzADSB spoustet automaticky [Y/n]:" '^[ynYN]*$' "y"
+            fi
+            if [[ "$X" == "n" ]] || [[ "$X" == "N" ]];then
+                N2NADSB="disable"
+            else
+                N2NADSB="enable"
+            fi
         fi
         echo  "Lokalni IP adrtesa VPN prirazena komunitou CzADSB."
         input "Pokud ji zatim nemate, ponechte prazdne. [${N2NADSB_LOCAL}]:" '^[0-9\.]*$' "${N2NADSB_LOCAL}" 
@@ -959,15 +972,17 @@ function set_reporter(){
         fi
     fi
     if [[ "${REPORTER}" =~ "disable" ]] || [[ "${REPORTER}" =~ "enable" ]];then
-        if [[ "${REPORTER}" == "disable" ]];then
-            input "Ma se Reporter spoustet automaticky [y/N]:" '^[ynYN]*$' "n"
-        else
-            input "Ma se Reporter spoustet automaticky [Y/n]:" '^[ynYN]*$' "y"
-        fi
-        if [[ "$X" == "n" ]] || [[ "$X" == "N" ]];then
-            REPORTER="disable"
-        else
-            REPORTER="enable"
+        if [[ "${EXPERT}" != "user" ]];then
+            if [[ "${REPORTER}" == "disable" ]];then
+                input "Ma se Reporter spoustet automaticky [y/N]:" '^[ynYN]*$' "n"
+            else
+                input "Ma se Reporter spoustet automaticky [Y/n]:" '^[ynYN]*$' "y"
+            fi
+            if [[ "$X" == "n" ]] || [[ "$X" == "N" ]];then
+                REPORTER="disable"
+            else
+                REPORTER="enable"
+            fi
         fi
         UPDATE_REPORTER=true
     fi
@@ -1089,6 +1104,7 @@ function set_ogn(){
         input "Nastaveni zesileni pro RTL-SDR (pokud nevite, ponechte) [${OGN_GAIN}]:" '^[0-9\.]*$' "${OGN_GAIN}"
         OGN_GAIN=${X}
         UPDATE_OGN=true
+        UPDATE_LIGHTTPD=true
     fi
 }
 
@@ -1240,6 +1256,7 @@ function set_adsbexchange(){
 
 # Funkce ulozi nastavena data do konfiguracniho souboru
 function set_cfg(){
+STATION_LOCIP=$(hostname -I)
 $SUDO touch ${CFG}
 $SUDO chmod 666 ${CFG}
 /bin/cat <<EOM > ${CFG}
@@ -1406,6 +1423,7 @@ STATION_ARCH="${STATION_ARCH}"
 STATION_MODEL="${STATION_MODEL}"
 STATION_MACHINE="${STATION_MACHINE}"
 STATION_PUBIP="${STATION_PUBIP}"
+STATION_LOCIP="${STATION_LOCIP}"
 STATION_USER="${STATION_USER}"
 
 EOM
@@ -1755,6 +1773,16 @@ function install_ogn(){
             wget -q ${INSTALL_URL}/install-ogn.sh -O /tmp/install.tmp
             . /tmp/install.tmp
             rm -f /tmp/install.tmp
+            if [[ "${LIGHTTPD}" == "disable" ]] || [[ "${LIGHTTPD}" == "enable" ]];then
+                echo " - nastaveni proxy pro OGN"
+                $SUDO wget -q ${INSTALL_URL}/web/62-ogn.conf -O /etc/lighttpd/conf-available/62-ogn.conf
+                $SUDO rm -rf /etc/lighttpd/conf-enabled/62-ogn.conf
+                $SUDO ln -s ../conf-available/62-ogn.conf /etc/lighttpd/conf-enabled/62-ogn.conf
+                if [[ "${LIGHTTPD}" == "enable" ]];then
+                    echo " - restart sluzby ${LIGHTTPD_NAME} pro aplikovani zmen."
+                    $SUDO systemctl reload ${LIGHTTPD_NAME}
+                fi
+            fi
         fi
         [[ "${UnitFileState}" != "generated" ]] && [[ "${UnitFileState}" != "${OGN}d" ]] && $SUDO systemctl ${OGN} ${OGN_NAME}.service
         [[ "${UnitFileState}" == "generated" ]] && $SUDO /lib/systemd/systemd-sysv-install ${OGN} ${OGN_NAME}
@@ -1769,9 +1797,9 @@ function install_ogn(){
         fi
         $SUDO sed -i "s/Gain[^;]*/Gain        = ${OGN_GAIN} /g" /opt/rtlsdr-ogn/OGNstation.conf
 
-        $SUDO sed -i "s/Latitude.[^;]*/Latitude   =  +${STATION_LAT} /g" /opt/rtlsdr-ogn/OGNstation.conf
-        $SUDO sed -i "s/Longitude[^;]*/Longitude  =  +${STATION_LON} /g" /opt/rtlsdr-ogn/OGNstation.conf
-        $SUDO sed -i "s/Altitude.[^;]*/Altitude   =  +${STATION_ALT} /g" /opt/rtlsdr-ogn/OGNstation.conf
+        $SUDO sed -i "s/Latitude.[^;]*/Latitude   = +${STATION_LAT} /g" /opt/rtlsdr-ogn/OGNstation.conf
+        $SUDO sed -i "s/Longitude[^;]*/Longitude  = +${STATION_LON} /g" /opt/rtlsdr-ogn/OGNstation.conf
+        $SUDO sed -i "s/Altitude.[^;]*/Altitude   = +${STATION_ALT} /g" /opt/rtlsdr-ogn/OGNstation.conf
         $SUDO sed -i "s/Call[^;]*/Call   = \"${STATION_NAME}\" /g" /opt/rtlsdr-ogn/OGNstation.conf
 
         if [[ "$(systemctl is-active ${OGN_NAME})" != "active" ]];then
@@ -2018,10 +2046,10 @@ set_czadsb
 grep '# cs_CZ.UTF-8 UTF-8' /etc/locale.gen
 if [ "$?" == "0" ];then
     echo "* Nastaveni jazykoveho prostredi"
-    sudo sed -i 's/^# \(cs_CZ.UTF-8 UTF-8\)/\1/' /etc/locale.gen                # 1. Odkomentování požadovaných jazyků v souboru /etc/locale.gen
-    sudo sed -i 's/^# \(en_GB.UTF-8 UTF-8\)/\1/' /etc/locale.gen
-    sudo locale-gen                                                             # 2. Vygenerování zvolených locales
-    sudo update-locale LANG=cs_CZ.UTF-8 LC_ALL=cs_CZ.UTF-8                      # 3. Nastavení výchozího jazyka systému
+    $SUDO sed -i 's/^# \(cs_CZ.UTF-8 UTF-8\)/\1/' /etc/locale.gen                # 1. Odkomentování požadovaných jazyků v souboru /etc/locale.gen
+    $SUDO sed -i 's/^# \(en_GB.UTF-8 UTF-8\)/\1/' /etc/locale.gen
+    $SUDO locale-gen                                                             # 2. Vygenerování zvolených locales
+    $SUDO update-locale LANG=cs_CZ.UTF-8 LC_ALL=cs_CZ.UTF-8                      # 3. Nastavení výchozího jazyka systému
 fi
 
 # Over nainstalovani rtl sdr ovladacu a pripadne je doinstaluj
